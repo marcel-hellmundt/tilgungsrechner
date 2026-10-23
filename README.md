@@ -15,4 +15,4 @@ npm run lint     # oxlint
 ## Deployment
 
 Jeder Push auf `main` baut die App und lädt `dist/` per FTP hoch (`.github/workflows/deploy.yml`, Environment `production`).
-Benötigt im Repo bzw. Environment: Secrets `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD` und Variable `FTP_DIR_WEBAPP`.
+Benötigt im Repo bzw. Environment: Secrets `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD` und Variable `FTP_DIR`.
