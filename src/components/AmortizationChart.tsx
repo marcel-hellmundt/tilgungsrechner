@@ -9,6 +9,8 @@ interface AmortizationChartProps {
   fixedRateMonths: number
   /** Additional vertical markers, e.g. retirement of a borrower */
   markers?: ChartMarker[]
+  /** Bars fade to black between these two rate numbers (e.g. oldest borrower aged 80 → 90) */
+  fade?: { startRate: number; endRate: number } | null
 }
 
 export interface ChartMarker {
@@ -26,7 +28,12 @@ const MARGIN = { top: 28, right: 52, bottom: 24, left: 60 }
  * principal and interest (stacked bars, right axis). Both axes share the same gridlines.
  * After the fixed-rate period the debt line branches into the follow-up scenarios.
  */
-export function AmortizationChart({ scenarios, fixedRateMonths, markers = [] }: AmortizationChartProps) {
+export function AmortizationChart({
+  scenarios,
+  fixedRateMonths,
+  markers = [],
+  fade = null,
+}: AmortizationChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const width = useElementWidth(containerRef)
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
@@ -49,9 +56,10 @@ export function AmortizationChart({ scenarios, fixedRateMonths, markers = [] }: 
   // Left axis picks nice ticks; the right axis reuses the same number of gridlines
   const debtTicks = niceTicks(maxDebt, 4)
   const segments = Math.max(1, debtTicks.length - 1)
-  const paymentStep = niceStep(maxPayment / segments)
+  // The payment axis is not rounded: the highest bar always fills the full plot height
+  const paymentStep = maxPayment / segments
   const debtMax = debtTicks[debtTicks.length - 1] || 1
-  const paymentMax = paymentStep * segments || 1
+  const paymentMax = maxPayment || 1
 
   const slot = months > 0 ? plotWidth / months : 0
   const xCenter = (i: number) => plotLeft + (i + 0.5) * slot
@@ -86,6 +94,10 @@ export function AmortizationChart({ scenarios, fixedRateMonths, markers = [] }: 
     for (let y = 0; y <= years; y += step) ticks.push(y)
     return ticks
   }, [months])
+
+  // 0 = original color, 1 = black
+  const fadeAt = (rateNumber: number) =>
+    fade ? Math.min(1, Math.max(0, (rateNumber - fade.startRate) / Math.max(1, fade.endRate - fade.startRate))) : 0
 
   // Wide bars get a 1px gap; dense bars overlap slightly so anti-aliasing doesn't leave seams
   const barWidth = slot > 3 ? slot - 1 : slot + 0.6
@@ -147,7 +159,7 @@ export function AmortizationChart({ scenarios, fixedRateMonths, markers = [] }: 
                 {formatAxis(t)}
               </text>
               <text className="chart__tick" x={plotRight + 8} y={yDebt(t)} textAnchor="start" dominantBaseline="middle">
-                {formatAxis(k * paymentStep)}
+                {formatAxis(Math.round(k * paymentStep))}
               </text>
             </g>
           ))}
@@ -165,10 +177,14 @@ export function AmortizationChart({ scenarios, fixedRateMonths, markers = [] }: 
             const x = plotLeft + i * slot
             const principalTop = yPayment(e.principal)
             const totalTop = yPayment(e.principal + e.interest)
+            const darken = fadeAt(e.month)
             return (
               <g key={e.month} className={hoverIndex !== null && hoverIndex !== i ? 'chart__bar chart__bar--dim' : 'chart__bar'}>
                 <rect className="chart__principal" x={x} width={barWidth} y={principalTop} height={plotBottom - principalTop} />
                 <rect className="chart__interest" x={x} width={barWidth} y={totalTop} height={principalTop - totalTop} />
+                {darken > 0 && (
+                  <rect className="chart__fade" x={x} width={barWidth} y={totalTop} height={plotBottom - totalTop} opacity={darken} />
+                )}
               </g>
             )
           })}

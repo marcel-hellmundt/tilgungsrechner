@@ -6,7 +6,7 @@ import { RangeInput } from './components/RangeInput'
 import { PersonCard } from './components/PersonCard'
 import { usePersons } from './hooks/usePersons'
 import { useStoredInput } from './hooks/useStoredInput'
-import { balanceBeforeRate, createPerson, retirementOf } from './lib/persons'
+import { balanceBeforeRate, createPerson, monthAfterAge, oldestPerson, retirementOf } from './lib/persons'
 import { AmortizationChart } from './components/AmortizationChart'
 import { calculateLoan, followUpScenarios, type LoanInput } from './lib/calc'
 import { formatCurrency, formatDuration, formatMonthYear, formatNumber, formatPercent } from './lib/format'
@@ -40,6 +40,13 @@ export default function App() {
   const result = useMemo(() => calculateLoan(input), [input])
   const [persons, setPersons] = usePersons()
   const retirements = useMemo(() => persons.map((p) => retirementOf(p)), [persons])
+  // Bars fade to black while the oldest borrower goes from 80 to 90
+  const fade = useMemo(() => {
+    const oldest = oldestPerson(persons)
+    const start = oldest && monthAfterAge(oldest, 80)
+    const end = oldest && monthAfterAge(oldest, 90)
+    return start && end ? { startRate: start.rateNumber, endRate: end.rateNumber } : null
+  }, [persons])
 
   const scenarios = useMemo(() => followUpScenarios(input, result), [input, result])
   // Key figures assume the interest rate stays the same after the fixed-rate period
@@ -254,7 +261,7 @@ export default function App() {
               <Card title="Tilgungsverlauf">
                 <AmortizationChart
                   scenarios={scenarios}
-                  fixedRateMonths={input.fixedRateYears * 12}
+                  fixedRateMonths={input.fixedRateYears * 12}                  fade={fade}
                   markers={persons.flatMap((p, i) => {
                     const r = retirements[i]
                     return r ? [{ key: p.id, label: `Rente ${p.name.trim() || `Person ${i + 1}`}`, rateNumber: r.rateNumber }] : []

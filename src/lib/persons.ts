@@ -20,13 +20,27 @@ export interface Retirement {
 }
 
 export function retirementOf(person: Person, today = new Date()): Retirement | null {
+  return monthAfterAge(person, RETIREMENT_AGE, today)
+}
+
+/**
+ * Erster Monat nach Erreichen von `age` Jahren und die Nummer der Rate in diesem Monat
+ * (Regelaltersrente beginnt z. B. im Monat nach dem 67. Geburtstag).
+ */
+export function monthAfterAge(person: Person, age: number, today = new Date()): Retirement | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(person.birthDate)
   if (!match) return null
   const [year, month] = [Number(match[1]), Number(match[2])]
-  // Regelaltersrente beginnt im Monat nach Erreichen der Altersgrenze
-  const start = new Date(year + RETIREMENT_AGE, month, 1)
+  const start = new Date(year + age, month, 1)
   const rateNumber = (start.getFullYear() - today.getFullYear()) * 12 + (start.getMonth() - today.getMonth())
   return { start, rateNumber }
+}
+
+/** Ältester Kreditnehmer mit gültigem Geburtsdatum */
+export function oldestPerson(persons: Person[]): Person | undefined {
+  return persons
+    .filter((p) => /^\d{4}-\d{2}-\d{2}$/.test(p.birthDate))
+    .sort((a, b) => a.birthDate.localeCompare(b.birthDate))[0]
 }
 
 /** Restschuld zu Beginn des Monats mit Rate `rateNumber` (also nach der vorherigen Rate). */

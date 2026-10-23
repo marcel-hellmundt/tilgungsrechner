@@ -768,6 +768,10 @@ input {
   fill: var(--series-interest);
 }
 
+.chart__fade {
+  fill: #000;
+}
+
 .chart__bar {
   transition: opacity 0.1s ease;
 }
