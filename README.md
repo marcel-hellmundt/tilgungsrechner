@@ -12,4 +12,7 @@ npm run preview  # Build lokal ansehen
 npm run lint     # oxlint
 ```
 
-Die App ist für GitHub Pages unter `/tilgungsrechner/` konfiguriert (`base` in `vite.config.ts`).
+## Deployment
+
+Jeder Push auf `main` baut die App und lädt `dist/` per FTP hoch (`.github/workflows/deploy.yml`, Environment `production`).
+Benötigt im Repo bzw. Environment: Secrets `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD` und Variable `FTP_DIR_WEBAPP`.

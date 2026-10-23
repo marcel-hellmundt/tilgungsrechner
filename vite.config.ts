@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // GitHub Pages serves the app under /<repo-name>/
-  base: '/tilgungsrechner/',
+  // Relative asset paths: works regardless of the directory the app is uploaded to
+  base: './',
   plugins: [react()],
 })
