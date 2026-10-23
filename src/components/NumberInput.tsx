@@ -7,22 +7,25 @@ interface NumberInputProps {
   onChange: (value: number) => void
   unit: string
   hint?: string
+  /** Derived value shown to the right of the input, e.g. the € amount of a percentage */
+  aside?: string
   min?: number
   max?: number
 }
 
-/** Text input for German-formatted numbers; reformats on blur. */
-export function NumberInput({ label, value, onChange, unit, hint, min = 0, max = Infinity }: NumberInputProps) {
+/** Single-row input for German-formatted numbers; reformats on blur. */
+export function NumberInput({ label, value, onChange, unit, hint, aside, min = 0, max = Infinity }: NumberInputProps) {
   const id = useId()
   const hintId = `${id}-hint`
   const [draft, setDraft] = useState<string | null>(null)
+  const hasAside = aside !== undefined
 
   return (
     <div className="field">
       <label className="field__label" htmlFor={id}>
         {label}
       </label>
-      <div className="field__control">
+      <div className={hasAside ? 'field__control' : 'field__control field__control--wide'}>
         <input
           id={id}
           className="field__input"
@@ -44,6 +47,11 @@ export function NumberInput({ label, value, onChange, unit, hint, min = 0, max =
         />
         <span className="field__unit">{unit}</span>
       </div>
+      {hasAside && (
+        <output className="field__aside" htmlFor={id}>
+          {aside}
+        </output>
+      )}
       {hint && (
         <p className="field__hint" id={hintId}>
           {hint}

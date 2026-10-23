@@ -25,6 +25,17 @@ export function parseNumber(input: string): number {
   return Number(normalized)
 }
 
+const monthYear = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
+
+/**
+ * Month in which rate number `monthsFromNow` is due. The loan starts on the 1st of next month,
+ * so rate 1 falls into next month (today 15.10.2026 → rate 1 = November 2026).
+ */
+export function formatMonthYear(monthsFromNow: number): string {
+  const now = new Date()
+  return monthYear.format(new Date(now.getFullYear(), now.getMonth() + monthsFromNow, 1))
+}
+
 export function formatDuration(months: number): string {
   let years = Math.floor(months / 12)
   let rest = Math.round(months % 12)
